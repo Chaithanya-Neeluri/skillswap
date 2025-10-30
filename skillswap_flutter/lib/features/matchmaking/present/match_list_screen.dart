@@ -45,77 +45,100 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final navyBlack = const Color(0xFF0B0C10);
+    final ashGray = const Color(0xFFB0B0B0);
+    final cream = const Color(0xFFF5E8C7);
+    final cardDark = const Color(0xFF1C1E22);
+
     return Scaffold(
-      backgroundColor: const Color(0xfff7f8fa),
+      backgroundColor: navyBlack,
       appBar: AppBar(
-        backgroundColor: Colors.deepPurpleAccent,
-        title: const Text("Find Your Tutor", style: TextStyle(color: Colors.white)),
+        backgroundColor: cardDark,
+        elevation: 0,
         centerTitle: true,
-        elevation: 3,
+        title: Text(
+          "Find Your Tutor",
+          style: TextStyle(
+            color: cream,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: 0.5,
+          ),
+        ),
+        iconTheme: IconThemeData(color: cream),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           children: [
-            // 🔍 Search Box
-            Container(
+            
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                color: cardDark,
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  )
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
+                border: Border.all(color: Colors.white12, width: 1.2),
               ),
               child: TextField(
                 controller: _controller,
+                style: TextStyle(color: Colors.black26, fontSize: 16),
                 onSubmitted: (_) => _searchTutors(),
                 decoration: InputDecoration(
                   hintText: "Search by skill or tutor name...",
-                  prefixIcon: const Icon(Icons.search, color: Colors.deepPurpleAccent),
+                  hintStyle: TextStyle(color: ashGray, fontSize: 15),
+                  prefixIcon: const Icon(Icons.search, color: Colors.cyanAccent),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.clear),
+                    icon: const Icon(Icons.clear, color: Colors.redAccent),
                     onPressed: () => _controller.clear(),
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                 ),
               ),
             ),
             const SizedBox(height: 20),
 
-            // 🌀 Loading
+        
             if (_isLoading)
               const Expanded(
                 child: Center(
-                  child: CircularProgressIndicator(color: Colors.deepPurpleAccent),
+                  child: CircularProgressIndicator(color: Colors.cyanAccent),
                 ),
               ),
 
-            // ⚠️ Error
             if (_error.isNotEmpty)
               Expanded(
                 child: Center(
                   child: Text(
                     _error,
-                    style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
 
-            // 👩‍🏫 Tutors List
+         
             if (!_isLoading && _tutors.isNotEmpty)
               Expanded(
                 child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
                   itemCount: _tutors.length,
                   itemBuilder: (context, index) {
                     final tutor = _tutors[index];
                     final skills = (tutor['skills'] ?? [])
                         .map((s) => s['name'])
                         .join(', ');
+
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -127,35 +150,46 @@ class _SearchScreenState extends State<SearchScreen> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          color: cardDark,
+                          borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.deepPurpleAccent.withOpacity(0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
+                              color: Colors.cyanAccent.withOpacity(0.1),
+                              blurRadius: 15,
+                              offset: const Offset(0, 6),
+                            ),
                           ],
+                          border: Border.all(color: Colors.white12, width: 1),
                         ),
                         child: ListTile(
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                           leading: CircleAvatar(
-                            backgroundColor: Colors.deepPurpleAccent.shade100,
-                            child: const Icon(Icons.person, color: Colors.white),
+                            radius: 26,
+                            backgroundColor: Colors.cyanAccent.withOpacity(0.2),
+                            child: const Icon(Icons.person,
+                                color: Colors.cyanAccent, size: 28),
                           ),
                           title: Text(
                             tutor['name'] ?? "Unnamed Tutor",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
                               fontSize: 16,
+                              color: cream,
                             ),
                           ),
                           subtitle: Text(
                             skills.isNotEmpty ? skills : "No skills listed",
-                            style: const TextStyle(color: Colors.black54),
+                            style: TextStyle(
+                              color: ashGray,
+                              fontSize: 13.5,
+                            ),
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing: const Icon(Icons.arrow_forward_ios,
+                              size: 16, color: Colors.cyanAccent),
                         ),
                       ),
                     );
@@ -163,12 +197,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
 
+         
             if (!_isLoading && _tutors.isEmpty && _error.isEmpty)
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
                     "Search for tutors by typing above 🔍",
-                    style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                      color: ashGray,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ),

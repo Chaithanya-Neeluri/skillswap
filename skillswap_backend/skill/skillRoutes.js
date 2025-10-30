@@ -66,15 +66,15 @@ router.post("/generate-quiz", async (req, res) => {
     ]
     `;
 
-    // ✅ Use Gemini model (use "gemini-1.5-flash" or "gemini-1.5-pro")
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     let content = response.text().trim();
 
-    // ✅ Clean unwanted markdown if any
+
     if (content.startsWith("```json")) content = content.replace(/```json|```/g, "");
     if (content.startsWith("```")) content = content.replace(/```/g, "");
 
@@ -130,7 +130,6 @@ router.post("/update-skill-proficiency", async (req, res) => {
       });
     }
 
-    // Update existing skill
     user.skills[skillIndex].proficiency = proficiency;
     await user.save();
 

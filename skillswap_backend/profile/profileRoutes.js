@@ -3,7 +3,6 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// PATCH /update-profile/:userId
 router.patch("/update-profile/:userId", async (req, res) => {
   try {
     const { userId } = req.params;

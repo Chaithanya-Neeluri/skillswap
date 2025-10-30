@@ -1,16 +1,13 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";  // ✅ import from models folder
+import User from "../models/User.js";  
 import dotenv from "dotenv";
 dotenv.config(); 
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// ===========================
-// 🔹 1. SIGNUP - Create User
-// ===========================
 router.post("/create-user", async (req, res) => {
   try {
     const { userId, name, email, password, skills, bio, availability } = req.body;
@@ -54,9 +51,7 @@ router.post("/create-user", async (req, res) => {
   }
 });
 
-// ===========================
-// 🔹 2. LOGIN - Check User
-// ===========================
+
 router.post("/check-user", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -91,10 +86,6 @@ router.post("/check-user", async (req, res) => {
   }
 });
 
-
-// ===========================
-// 🔹 3. GET PROFILE (Protected Route)
-// ===========================
 router.get("/profile", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;

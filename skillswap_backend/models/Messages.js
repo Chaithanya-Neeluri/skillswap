@@ -1,3 +1,4 @@
+// models/Message.js
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
@@ -19,10 +20,10 @@ const messageSchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
     },
+    type: { type: String, default: "text" } // text, image, file...
   },
   { timestamps: true, collection: "MESSAGES" }
 );
 
-export default mongoose.model("Message", messageSchema);
+export default mongoose.models.Message || mongoose.model("Message", messageSchema);

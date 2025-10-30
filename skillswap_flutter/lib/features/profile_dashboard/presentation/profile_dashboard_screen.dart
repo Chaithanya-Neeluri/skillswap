@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../features/auth/data/auth_service.dart';
 import '../data/profile_service.dart';
+import '../../../features/auth/present/login_screen.dart';
 
 class ProfileDashboardScreen extends StatefulWidget {
   const ProfileDashboardScreen({Key? key}) : super(key: key);
@@ -13,9 +14,9 @@ class ProfileDashboardScreen extends StatefulWidget {
 
 class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
     with SingleTickerProviderStateMixin {
-  Map<String, dynamic>? userData;
   bool isLoading = true;
   List<dynamic> skills = [];
+  Map<String, dynamic>? userData;
   late AnimationController _controller;
 
   @override
@@ -46,26 +47,34 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1F2833),
         title: const Text(
           "Add a New Skill",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: Color(0xFFF2E7C9)),
         ),
         content: TextField(
           controller: skillController,
+          style: const TextStyle(color: Color.fromARGB(255, 56, 55, 55)),
           decoration: const InputDecoration(
             labelText: "Enter Skill Name",
-            border: OutlineInputBorder(),
+            labelStyle: TextStyle(color: Color.fromARGB(255, 78, 77, 77)),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF45A29E)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFFF2E7C9)),
+            ),
           ),
         ),
         actions: [
           TextButton(
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: Color(0xFFB0B0B0))),
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurpleAccent,
+              backgroundColor: const Color(0xFF45A29E),
             ),
             onPressed: () async {
               final skillName = skillController.text.trim();
@@ -73,7 +82,7 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
               Navigator.pop(context);
               _generateQuiz(skillName);
             },
-            child: const Text("Next"),
+            child: const Text("Next", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -84,7 +93,7 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Color(0xFF45A29E))),
     );
 
     try {
@@ -109,22 +118,24 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
 
         return StatefulBuilder(builder: (context, setState) {
           final question = quiz[currentQuestion];
-
           return AlertDialog(
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFF1F2833),
             title: Text(
               "Quiz: ${skillName.toUpperCase()}",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Color(0xFFF2E7C9)),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(question["question"]),
+                Text(question["question"],
+                    style: const TextStyle(color: Color(0xFFF2E7C9))),
                 const SizedBox(height: 10),
                 ...List.generate(question["options"].length, (i) {
                   final option = question["options"][i];
                   return RadioListTile<String>(
-                    title: Text(option),
+                    activeColor: const Color(0xFF45A29E),
+                    title: Text(option, style: const TextStyle(color: Color(0xFFF2E7C9))),
                     value: option,
                     groupValue: selectedAnswer,
                     onChanged: (val) {
@@ -135,47 +146,34 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
               ],
             ),
             actions: [
-              if (currentQuestion < quiz.length - 1)
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurpleAccent),
-                  onPressed: () {
-                   if (selectedAnswer != null && 
-    selectedAnswer!.trim().startsWith(question["answer"])) {
-  score += question["complexity"] == "high"
-      ? 3
-      : question["complexity"] == "medium"
-          ? 2
-          : 1;
-}
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF45A29E)),
+                onPressed: () async {
+                  if (selectedAnswer != null &&
+                      selectedAnswer!.trim().startsWith(question["answer"])) {
+                    score += question["complexity"] == "high"
+                        ? 3
+                        : question["complexity"] == "medium"
+                            ? 2
+                            : 1;
+                  }
 
+                  if (currentQuestion < quiz.length - 1) {
                     setState(() {
                       currentQuestion++;
                       selectedAnswer = null;
                     });
-                  },
-                  child: const Text("Next"),
-                )
-              else
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurpleAccent),
-                  onPressed: () async {
-                   if (selectedAnswer != null && 
-    selectedAnswer!.trim().startsWith(question["answer"])) {
-  score += question["complexity"] == "high"
-      ? 3
-      : question["complexity"] == "medium"
-          ? 2
-          : 1;
-}
-
+                  } else {
                     final proficiency = (score / (quiz.length * 3)) * 100;
                     await _saveSkill(skillName, proficiency);
                     Navigator.pop(context);
-                  },
-                  child: const Text("Submit"),
-                )
+                  }
+                },
+                child: Text(
+                    currentQuestion < quiz.length - 1 ? "Next" : "Submit",
+                    style: const TextStyle(color: Colors.white)),
+              )
             ],
           );
         });
@@ -184,171 +182,71 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
   }
 
   Future<void> _saveSkill(String skillName, double proficiency) async {
-  try {
-    final response = await ApiService.updateProficiency(skillName, proficiency);
-
-    if (response["success"] == true) {
-      setState(() {
-        // update local list if the skill already exists or add it
-        final index = skills.indexWhere(
-            (s) => s["name"].toLowerCase() == skillName.toLowerCase());
-        if (index != -1) {
-          skills[index]["proficiency"] = proficiency;
-        } else {
-          skills.add({"name": skillName, "proficiency": proficiency});
-        }
-      });
-
+    try {
+      final response = await ApiService.updateProficiency(skillName, proficiency);
+      if (response["success"] == true) {
+        setState(() {
+          final index = skills.indexWhere(
+              (s) => s["name"].toLowerCase() == skillName.toLowerCase());
+          if (index != -1) {
+            skills[index]["proficiency"] = proficiency;
+          } else {
+            skills.add({"name": skillName, "proficiency": proficiency});
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "✅ ${response["message"]} (${proficiency.toStringAsFixed(1)}%)")),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                "✅ ${response["message"]} (${proficiency.toStringAsFixed(1)}%)")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("⚠️ ${response["message"]}")),
+        SnackBar(content: Text("❌ Error saving skill: $e")),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("❌ Error saving skill: $e")),
-    );
-  }
-}
-
-
-  @override
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      floatingActionButton: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final scale = 1 + (_controller.value * 0.1);
-          return Transform.scale(
-            scale: scale,
-            child: FloatingActionButton(
-              onPressed: _showAddSkillDialog,
-              backgroundColor: Colors.deepPurpleAccent,
-              child: const Icon(Icons.add, size: 30),
-            ),
-          );
-        },
-      ),
-      body: Stack(
-        children: [
-          // Gradient Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF7F00FF), Color(0xFFE100FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Your Skills",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (skills.isEmpty)
-                          Center(
-                            child: Container(
-                              margin: const EdgeInsets.only(top: 40),
-                              child: const Text(
-                                "No skills added yet. Tap '+' to add one!",
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            ),
-                          )
-                        else
-                          Column(
-                            children: skills.map((s) {
-                              return _buildSkillCard(
-                                s["name"],
-                                s["proficiency"].toDouble(),
-                              );
-                            }).toList(),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildHeader() {
     return Container(
       margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        color: const Color(0xFF1F2833),
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withOpacity(0.1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withOpacity(0.4),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
-      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Hero(
-            tag: "profile-avatar",
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.deepPurpleAccent,
-              child: Text(
-                userData!["name"][0].toUpperCase(),
-                style: const TextStyle(fontSize: 32, color: Colors.white),
-              ),
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: const Color(0xFF45A29E),
+            child: Text(
+              userData!["name"][0].toUpperCase(),
+              style: const TextStyle(fontSize: 32, color: Color(0xFFF2E7C9)),
             ),
           ),
           const SizedBox(width: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                userData!["name"],
-                style: const TextStyle(
-                  fontSize: 22,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                userData!["email"],
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(userData!["name"],
+                    style: const TextStyle(
+                        fontSize: 22,
+                        color: Color(0xFFF2E7C9),
+                        fontWeight: FontWeight.bold)),
+                Text(userData!["email"],
+                    style: const TextStyle(
+                        color: Color(0xFFB0B0B0), fontSize: 14)),
+              ],
+            ),
           ),
         ],
       ),
@@ -360,30 +258,27 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
       duration: const Duration(milliseconds: 400),
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
+        color: const Color(0xFF1F2833),
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.1),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.2),
+            color: const Color(0xFF45A29E).withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ListTile(
-        leading: const Icon(Icons.star, color: Colors.amber),
-        title: Text(
-          skill,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
+        leading: const Icon(Icons.star, color: Color(0xFF45A29E)),
+        title: Text(skill,
+            style: const TextStyle(color: Color(0xFFF2E7C9), fontSize: 16)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             LinearProgressIndicator(
               value: proficiency / 100,
-              color: Colors.deepPurpleAccent,
+              color: const Color(0xFF45A29E),
               backgroundColor: Colors.white24,
               minHeight: 6,
               borderRadius: BorderRadius.circular(10),
@@ -391,7 +286,132 @@ class _ProfileDashboardScreenState extends State<ProfileDashboardScreen>
             const SizedBox(height: 4),
             Text(
               "${proficiency.toStringAsFixed(1)}% proficiency",
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0B0C10),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF45A29E))),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0C10),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text("Profile Dashboard",
+            style: TextStyle(
+                color: Color(0xFFF2E7C9), fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Color(0xFFF2E7C9)),
+            tooltip: "Logout",
+            onPressed: () async {
+              final confirm = await showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  backgroundColor: const Color(0xFF1F2833),
+                  title: const Text("Confirm Logout",
+                      style: TextStyle(color: Color(0xFFF2E7C9))),
+                  content: const Text("Are you sure you want to logout?",
+                      style: TextStyle(color: Color(0xFFF2E7C9))),
+                  actions: [
+                    TextButton(
+                      child: const Text("Cancel",
+                          style: TextStyle(color: Color(0xFFB0B0B0))),
+                      onPressed: () => Navigator.pop(context, false),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF45A29E),
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text("Logout",
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+                await AuthService.logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final scale = 1 + (_controller.value * 0.1);
+            return Transform.scale(
+              scale: scale,
+              child: FloatingActionButton(
+                onPressed: _showAddSkillDialog,
+                backgroundColor: const Color(0xFF45A29E),
+                child: const Icon(Icons.add, size: 30, color: Colors.white),
+              ),
+            );
+          },
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Your Skills",
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFFF2E7C9),
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    if (skills.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Text("No skills added yet. Tap '+' to add one!",
+                              style:
+                                  TextStyle(color: Color(0xFFB0B0B0))),
+                        ),
+                      )
+                    else
+                      Column(
+                        children: skills
+                            .map((s) => _buildSkillCard(
+                                  s["name"],
+                                  s["proficiency"].toDouble(),
+                                ))
+                            .toList(),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

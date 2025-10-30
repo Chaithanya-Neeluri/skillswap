@@ -3,12 +3,11 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-// ✅ Use existing compiled User model if available
+
 const User =
   mongoose.models.User ||
   mongoose.model("User", new mongoose.Schema({}, { strict: false }), "USERS");
 
-// ✅ Route to search tutors by name or skill
 router.post("/search", async (req, res) => {
   try {
     const { query } = req.body;
@@ -17,9 +16,8 @@ router.post("/search", async (req, res) => {
       return res.status(400).json({ message: "Search query is required" });
     }
 
-    const regex = new RegExp(query, "i"); // case-insensitive search
+    const regex = new RegExp(query, "i"); 
 
-    // Search users where name or any skill name matches
     const tutors = await User.find({
       $or: [{ name: { $regex: regex } }, { "skills.name": { $regex: regex } }],
     });

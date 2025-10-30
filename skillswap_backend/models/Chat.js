@@ -1,3 +1,4 @@
+// models/Chat.js
 import mongoose from "mongoose";
 
 const chatSchema = new mongoose.Schema(
@@ -12,4 +13,4 @@ const chatSchema = new mongoose.Schema(
   { timestamps: true, collection: "CHATS" }
 );
 
-export default mongoose.model("Chat", chatSchema);
+export default mongoose.models.Chat || mongoose.model("Chat", chatSchema);
