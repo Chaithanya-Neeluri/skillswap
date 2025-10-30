@@ -202,7 +202,6 @@ Chaithanya Neeluri
 
  Jagan Thappetla
 📍 Kadapa, India
-💼 Passionate Developer | Tech Learner
 📧 t.jagant.jagan1234@gmail.com
  
 
