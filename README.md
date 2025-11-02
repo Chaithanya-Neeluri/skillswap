@@ -18,7 +18,6 @@ SkillSwap/
 ├── skillswap_backend/       # Express.js backend
 │   ├── routes/              # API route handlers
 │   ├── models/              # Mongoose models
-│   ├── controllers/         # Business logic
 │   ├── .env                 # Environment variables
 │   ├── server.js            # Backend entry point
 │   └── package.json         # Backend dependencies
